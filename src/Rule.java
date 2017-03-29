@@ -1,8 +1,6 @@
 import java.util.LinkedList;
 
-/**
- * Created by Mack on 3/15/2017.
- */
+
 public class Rule {
     //A Rule is a statement of the form (a is valA ==> b), (if a is aVal, then b)
     //b is also a rule, so rules can be nested inside each other

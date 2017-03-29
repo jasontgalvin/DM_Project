@@ -1,9 +1,7 @@
 import java.util.LinkedList;
 import java.util.Vector;
 
-/**
- * Created by Mack on 3/12/2017.
- */
+
 public class ID3Node {
     public double entropy;
     public DataSet data;

@@ -1,8 +1,6 @@
 import java.util.LinkedList;
 
-/**
- * Created by Mack on 3/11/2017.
- */
+
 public class DataSet {
     private LinkedList<String> atrNames;
     private LinkedList<String>[] atrValues;

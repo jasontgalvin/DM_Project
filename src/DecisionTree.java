@@ -4,12 +4,15 @@ import java.util.*;
 
 import static java.lang.System.exit;
 
-/**
- * Created by Mack on 3/11/2017.
- */
-public class DecisionTree {
 
-    public static DataSet read_data(String path) throws IOException{
+public class DecisionTree{
+    public String path;
+    public String target;
+    public int targetCode;
+    public Rule[] rules;
+    public ID3Node tree;
+
+    private DataSet read_data(String path) throws IOException{
         //Imports the data file and places the transactions in a list
         Scanner in = new Scanner(new File(path));
         int totalAttributes;
@@ -71,7 +74,7 @@ public class DecisionTree {
             throw new IOException("File is empty");
         }
     }
-    public static DataSet create_subset(DataSet dataset, int attribute, int value){
+    private DataSet create_subset(DataSet dataset, int attribute, int value){
         //Creates a subset of a dataset that contains the given value of the splitting attribute
         DataSet subset = new DataSet();
         //Copy the attribute names and values over - there is no need to create new indexes
@@ -102,7 +105,7 @@ public class DecisionTree {
 
         return subset;
     }
-    public static double calculate_entropy(DataSet data,int targetCode){
+    private double calculate_entropy(DataSet data,int targetCode){
         //Calculate the entropy of each dataset with regards to information given by attribute targetCode
         double entropy = 0;
         int[][] dataTable = data.get_dataTable();
@@ -128,7 +131,7 @@ public class DecisionTree {
         }
         return entropy;
     }
-    public static void get_splitting_attribute(ID3Node node,int targetCode){
+    private void get_splitting_attribute(ID3Node node,int targetCode){
         //Find attribute with the highest gain and adds it to the given node
         DataSet data = node.data;
         LinkedList[] atrValues = data.get_atrValues();
@@ -159,8 +162,9 @@ public class DecisionTree {
             atrEntropy = 0;
         }
     }
-    public static ID3Node build_tree(ID3Node root,int targetCode){
+    private ID3Node build_tree(ID3Node root){
         //Creates a decision tree from the given dataset
+        int targetCode = this.targetCode;
         DataSet subset;
         //Get information Gain
         root.entropy = calculate_entropy(root.data,targetCode);
@@ -180,23 +184,14 @@ public class DecisionTree {
                 children[i] = new ID3Node(subset);
                 children[i].parent = root;
                 children[i].splitValue = i;
-                build_tree(children[i], targetCode);
+                build_tree(children[i]);
             }
             root.children = children;
         }
         return root;
     }
-    public static String[] get_user_options(){
-        //Gets the data file path and target attribute from the user
-        String[] options = new String[2];
-        Scanner scan = new Scanner(System.in);
-        System.out.print("Enter path to file:");
-        options[0] = scan.next();
-        System.out.print("Enter the target attribute (Same spelling as in the data file):");
-        options[1] = scan.next();
-        return options;
-    }
-    public static int get_target_code(DataSet data,String target){
+
+    private int get_target_code(DataSet data,String target){
         //Retrieves the integer code for the target string
         int targetCode = -1;
         int counter = 0;
@@ -213,7 +208,7 @@ public class DecisionTree {
         return targetCode;
     }
 
-    public static Rule[] create_rules(ID3Node currNode){
+    private Rule[] create_rules(ID3Node currNode){
         //Recursively generate rules from decision tree
         ID3Node[] children = currNode.children;
         Rule[] rules = null;
@@ -235,29 +230,30 @@ public class DecisionTree {
         }
         return rules;
     }
+    public void print_rules(){
+        //Prints out all rules for this decision tree
+        Rule[] rules = this.rules;
+        for(int i = 0;i<rules.length;i++) {
+            rules[i].print_rule(this.targetCode,0);
+        }
+    }
 
-    public static void main(String[] args) {
-        //Get parameters from user
-        String[] options = get_user_options();
-        String path = options[0];
-        String target = options[1];
-
+    public void init(String path, String target){
+        this.path = path;
+        this.target = target;
         try {
             DataSet data = read_data(path);
             //Get the targetCode for the attribute we want to classify
-            int targetCode = get_target_code(data,target);
-            if(targetCode == -1){
+            this.targetCode = get_target_code(data,target);
+            if(this.targetCode == -1){
                 System.out.println("The given target attribute name is not present in the table");
                 exit(1);
             }
             // Build a tree
             ID3Node root = new ID3Node(data);
-            ID3Node tree = build_tree(root,targetCode);
+            this.tree = build_tree(root);
             //Print all rules
-            Rule[] rules = create_rules(tree);
-            for(int i = 0;i<rules.length;i++) {
-                rules[i].print_rule(targetCode,0);
-            }
+            this.rules = create_rules(tree);
         }
         catch(IOException e){
             System.out.println("Error Reading file");
