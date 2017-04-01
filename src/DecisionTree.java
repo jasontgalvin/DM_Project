@@ -1,16 +1,18 @@
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 
 import static java.lang.System.exit;
 
 
 public class DecisionTree{
-    public String path;
+    public String trainpath;
+    public String testpath;
     public String target;
     public int targetCode;
     public Rule[] rules;
     public ID3Node tree;
+    public DataSet outData;
+    public double accuracy;
 
     private DataSet read_data(String path) throws IOException{
         //Imports the data file and places the transactions in a list
@@ -230,6 +232,72 @@ public class DecisionTree{
         }
         return rules;
     }
+    private double calc_accuracy(){
+        //Calculates the accuracy of the Naive Bayes Classifiers Predictions
+        DataSet data = this.outData;
+        int targetCode = this.targetCode;
+        double acc = 0;
+        int[][] dataTable = data.get_dataTable();
+        int totalTuples = dataTable.length;
+        int totalAttributes = data.get_atrNames().size();
+        int correct = 0;
+        //Count number of correct predictions
+        for(int i = 0;i<totalTuples;i++){
+            if(dataTable[i][targetCode] == dataTable[i][totalAttributes-1]){
+                correct++;
+            }
+        }
+        acc = (double)correct/(double)totalTuples;
+        return acc;
+    }
+    public DataSet classify_input(DataSet testData){
+        int targetCode = this.targetCode;
+        Rule[] rules = this.rules;
+        //Process and classify all test examples
+        int[][] dataTable = testData.get_dataTable();
+        LinkedList<String> atrNames = testData.get_atrNames();
+        LinkedList<String>[] atrValues = testData.get_atrValues();
+        atrNames.add("classification");
+        //Create a classes column in the data, transfer target code  values to class values
+        LinkedList<String> classes = new LinkedList<>();
+        for(int i = 0;i<atrValues[targetCode].size();i++){
+            classes.add(atrValues[targetCode].get(i));
+        }
+        //Transfer contents of old data values to new larger array
+        LinkedList<String>[] newAtrValues = new LinkedList[atrValues.length+1];
+        for(int i  = 0;i<atrValues.length;i++){
+            newAtrValues[i] = atrValues[i];
+        }
+        //Fill classification values with classes
+        newAtrValues[atrValues.length] = classes;
+
+        int[][] newDataTable = new int[dataTable.length][dataTable[0].length+1];
+        for(int i = 0;i<dataTable.length;i++) {
+            //Copy values from dataTable into outputDataTable
+            for(int j  =0;j<dataTable[0].length;j++){
+                newDataTable[i][j] = dataTable[i][j];
+            }
+            //Fill classification column with classification predictions
+            int cl = -1;
+
+            for(int k = 0;k<rules.length;k++) {
+                cl = rules[k].classify(dataTable[i]);
+                if(cl!= -1){
+                    break;
+                }
+            }
+            if(cl != -1) {
+                newDataTable[i][dataTable[0].length] = cl;
+            }
+        }
+
+        DataSet outputDataset = new DataSet();
+        outputDataset.set_dataTable(newDataTable);
+        outputDataset.set_atrNames(atrNames);
+        outputDataset.set_atrValues(newAtrValues);
+
+        return outputDataset;
+    }
     public void print_rules(){
         //Prints out all rules for this decision tree
         Rule[] rules = this.rules;
@@ -237,23 +305,61 @@ public class DecisionTree{
             rules[i].print_rule(this.targetCode,0);
         }
     }
+    public void write_toFile(){
+        //Write results to a file
+        try(Formatter writer = new Formatter(new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream("Results.txt"), "utf-8")))) {
+            DataSet data = this.outData;
+            double accuracy = this.accuracy;
+            int[][] dataTable = data.get_dataTable();
+            LinkedList<String> atrNames = data.get_atrNames();
+            LinkedList<String>[] atrValues = data.get_atrValues();
+            Iterator<String> itr = atrNames.iterator();
+            Formatter formatter = new Formatter();
 
-    public void init(String path, String target){
-        this.path = path;
+            //Print Column Headers
+            while(itr.hasNext()){
+                writer.format("%15s",itr.next());
+            }
+            writer.format("\n-----------------------------------------------------------------------------------------------\n");
+            //Print rows
+            for(int i = 0;i < dataTable.length;i++) {
+                for (int j = 0; j < atrNames.size(); j++) {
+                    writer.format("%15s",atrValues[j].get(dataTable[i][j]));
+                }
+                writer.format("\n");
+            }
+            //Print Accuracy
+            writer.format("\nAccuracy: " + accuracy);
+            System.out.println("Results have been outputted to file Results.txt\n Accuracy = " +accuracy);
+            try {writer.close();} catch (Exception ex) {/*ignore*/}
+        }
+        catch (IOException ex) {
+            System.out.println("Failed to write to file");
+        }
+    }
+
+    public void init(String trainpath,String testpath, String target){
+        this.trainpath = trainpath;
+        this.testpath = testpath;
         this.target = target;
         try {
-            DataSet data = read_data(path);
+            DataSet trainData = read_data(trainpath);
+            DataSet testData = read_data(testpath);
             //Get the targetCode for the attribute we want to classify
-            this.targetCode = get_target_code(data,target);
+            this.targetCode = get_target_code(trainData,target);
             if(this.targetCode == -1){
                 System.out.println("The given target attribute name is not present in the table");
                 exit(1);
             }
             // Build a tree
-            ID3Node root = new ID3Node(data);
+            ID3Node root = new ID3Node(trainData);
             this.tree = build_tree(root);
             //Print all rules
             this.rules = create_rules(tree);
+            //Classify test file, append classification column to test DataSet
+            this.outData = classify_input(testData);
+            this.accuracy = calc_accuracy();
         }
         catch(IOException e){
             System.out.println("Error Reading file");

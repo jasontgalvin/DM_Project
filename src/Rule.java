@@ -14,7 +14,24 @@ public class Rule {
         this.a = a;
         this.aVal = aVal;
         this.dataset = dataset;
+        this.targetVal = -1;
     }
+    public int classify(int[] input) {
+        //Traverse through the rule tree and return predicted value of the target attribute
+        int returnCode = -1;
+        if (input[a] == aVal) {
+            if (b != null) {
+                int aSplit = b[0].a;
+                returnCode = b[input[aSplit]].classify(input);
+                return returnCode;
+            } else {
+                return targetVal;
+            }
+        } else{
+            return returnCode;
+        }
+    }
+
     public void print_rule(int targetCode, int numIndents){
         //Prints rules recursively, using indentation to represent tree structure
         String aString = dataset.get_atrNames().get(a);
