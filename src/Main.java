@@ -25,7 +25,7 @@ public class Main {
         String testpath = "data2";
         String target = "playtennis";
 
-        DecisionTree dt = new DecisionTree();
+        C45Tree dt = new C45Tree();
         dt.init(trainpath,testpath,target);
         dt.print_rules();
         dt.write_toFile();

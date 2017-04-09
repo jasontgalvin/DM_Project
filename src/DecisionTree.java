@@ -76,7 +76,7 @@ public class DecisionTree{
             throw new IOException("File is empty");
         }
     }
-    private DataSet create_subset(DataSet dataset, int attribute, int value){
+    public DataSet create_subset(DataSet dataset, int attribute, int value){
         //Creates a subset of a dataset that contains the given value of the splitting attribute
         DataSet subset = new DataSet();
         //Copy the attribute names and values over - there is no need to create new indexes
@@ -107,7 +107,15 @@ public class DecisionTree{
 
         return subset;
     }
-    private double calculate_entropy(DataSet data,int targetCode){
+    public double log_base2(double x){
+        if(x!=0){
+            return Math.log(x)/Math.log(2);
+        }
+        else{
+            return 0;
+        }
+    }
+    public double calculate_entropy(DataSet data,int targetCode){
         //Calculate the entropy of each dataset with regards to information given by attribute targetCode
         double entropy = 0;
         int[][] dataTable = data.get_dataTable();
@@ -128,13 +136,14 @@ public class DecisionTree{
             if(count != 0) {
                 prob = ((double) count) / ((double) size);
                 count = 0;
-                entropy += -prob * Math.log(prob);
+                entropy += -prob * log_base2(prob);
             }
         }
         return entropy;
     }
     private void get_splitting_attribute(ID3Node node,int targetCode){
         //Find attribute with the highest gain and adds it to the given node
+        System.out.println("OH NO\n\n\n");
         DataSet data = node.data;
         LinkedList[] atrValues = data.get_atrValues();
         DataSet subset;
