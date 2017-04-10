@@ -26,7 +26,12 @@ public class Main {
         String target = "playtennis";
 
         C45Tree dt = new C45Tree();
+//        DecisionTree dt = new DecisionTree();
         dt.init(trainpath,testpath,target);
+        dt.init_tree();
+        dt.build_tree(dt.tree);
+        dt.init_rules();
+        dt.classify();
         dt.print_rules();
         dt.write_toFile();
     }

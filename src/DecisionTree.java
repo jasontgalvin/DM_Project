@@ -4,7 +4,7 @@ import java.util.*;
 import static java.lang.System.exit;
 
 
-public class DecisionTree{
+public class DecisionTree {
     public String trainpath;
     public String testpath;
     public String target;
@@ -12,21 +12,23 @@ public class DecisionTree{
     public Rule[] rules;
     public ID3Node tree;
     public DataSet outData;
+    public DataSet trainData;
+    public DataSet testData;
     public double accuracy;
 
-    private DataSet read_data(String path) throws IOException{
+    private DataSet read_data(String path) throws IOException {
         //Imports the data file and places the transactions in a list
         Scanner in = new Scanner(new File(path));
         int totalAttributes;
         int[][] data;
-        if(in.hasNextLine()) {
+        if (in.hasNextLine()) {
             Scanner firstScan = new Scanner(in.nextLine());
             DataSet dataSet = new DataSet();
 
             //Read in the attribute names
             LinkedList<String> attributes = new LinkedList<>();
             dataSet.set_atrNames(attributes);
-            while(firstScan.hasNext()) {
+            while (firstScan.hasNext()) {
                 attributes.add(firstScan.next());
             }
             totalAttributes = attributes.size();
@@ -37,16 +39,16 @@ public class DecisionTree{
 
             //Create and initialize an array for storing all possible values for each attribute
             LinkedList<String>[] attributeValues = new LinkedList[totalAttributes];
-            for(int i=0;i<totalAttributes;i++){
+            for (int i = 0; i < totalAttributes; i++) {
                 attributeValues[i] = new LinkedList<>();
             }
 
             //Parse all rows of the input, add records to temp list and store attribute options in attributeValues
             while (in.hasNext()) {
                 String[] dataRecord = new String[totalAttributes];
-                for(int i = 0;i<totalAttributes;i++) {
+                for (int i = 0; i < totalAttributes; i++) {
                     dataRecord[i] = in.next();
-                    if(!attributeValues[i].contains(dataRecord[i])){
+                    if (!attributeValues[i].contains(dataRecord[i])) {
                         attributeValues[i].add(dataRecord[i]);
                     }
                 }
@@ -57,8 +59,8 @@ public class DecisionTree{
             // For each term in data, replace with integer position of term
             int numOfRows = dataLists.size();
             data = new int[numOfRows][totalAttributes];
-            for(int i = 0;i<numOfRows;i++){
-                for(int j = 0;j<totalAttributes;j++){
+            for (int i = 0; i < numOfRows; i++) {
+                for (int j = 0; j < totalAttributes; j++) {
                     data[i][j] = attributeValues[j].indexOf(dataLists.get(i)[j]);
                 }
             }
@@ -71,12 +73,12 @@ public class DecisionTree{
             firstScan.close();
             in.close();
             return dataSet;
-        }
-        else{
+        } else {
             throw new IOException("File is empty");
         }
     }
-    public DataSet create_subset(DataSet dataset, int attribute, int value){
+
+    public DataSet create_subset(DataSet dataset, int attribute, int value) {
         //Creates a subset of a dataset that contains the given value of the splitting attribute
         DataSet subset = new DataSet();
         //Copy the attribute names and values over - there is no need to create new indexes
@@ -88,17 +90,17 @@ public class DecisionTree{
         LinkedList<Integer> subsetIndexes = new LinkedList<>();
         //Iterate through all rows, checking if each row contains given value for the splitting attribute
         //Add the indexes of these rows to linkedlist for later processing
-        for(int i = 0;i < size;i++){
-            if(dataTable[i][attribute] == value){
+        for (int i = 0; i < size; i++) {
+            if (dataTable[i][attribute] == value) {
                 subsetIndexes.add(i);
             }
         }
         //Create table for subset and fill it with the rows that met the condition above
         int[][] subsetTable = new int[subsetIndexes.size()][dataset.get_atrNames().size()];
         int currIndex;
-        for(int i = 0;i<subsetTable.length;i++){
+        for (int i = 0; i < subsetTable.length; i++) {
             currIndex = subsetIndexes.get(i);
-            for(int j = 0;j<subsetTable[0].length;j++){
+            for (int j = 0; j < subsetTable[0].length; j++) {
                 subsetTable[i][j] = dataTable[currIndex][j];
             }
         }
@@ -107,33 +109,34 @@ public class DecisionTree{
 
         return subset;
     }
-    public double log_base2(double x){
-        if(x!=0){
-            return Math.log(x)/Math.log(2);
-        }
-        else{
+
+    public double log_base2(double x) {
+        if (x != 0) {
+            return Math.log(x) / Math.log(2);
+        } else {
             return 0;
         }
     }
-    public double calculate_entropy(DataSet data,int targetCode){
+
+    public double calculate_entropy(DataSet data, int targetCode) {
         //Calculate the entropy of each dataset with regards to information given by attribute targetCode
         double entropy = 0;
         int[][] dataTable = data.get_dataTable();
         int size = dataTable.length;
-        double prob  = 0;
+        double prob = 0;
         int count = 0;
-        if(size == 0){
+        if (size == 0) {
             return 0;
         }
         LinkedList<String>[] atrValues = data.get_atrValues();
-        for(int j = 0;j<atrValues[targetCode].size();j++) {
+        for (int j = 0; j < atrValues[targetCode].size(); j++) {
             for (int i = 0; i < size; i++) {
-                if(dataTable[i][targetCode] == j){
+                if (dataTable[i][targetCode] == j) {
                     count++;
                 }
             }
             //Ensure that count is not zero, else set entropy to zero for this iteration
-            if(count != 0) {
+            if (count != 0) {
                 prob = ((double) count) / ((double) size);
                 count = 0;
                 entropy += -prob * log_base2(prob);
@@ -141,7 +144,8 @@ public class DecisionTree{
         }
         return entropy;
     }
-    private void get_splitting_attribute(ID3Node node,int targetCode){
+
+    private void get_splitting_attribute(ID3Node node, int targetCode) {
         //Find attribute with the highest gain and adds it to the given node
         System.out.println("OH NO\n\n\n");
         DataSet data = node.data;
@@ -154,26 +158,37 @@ public class DecisionTree{
         double highestGain = 0;
         double gain;
         //Loop through all attributes, storing the code of the attribute with the highest gain
-        for(int i = 0;i< atrValues.length;i++){
-            if(targetCode == i){
+        for (int i = 0; i < atrValues.length; i++) {
+            if (targetCode == i) {
                 continue;
             }
-            for(int j = 0;j<atrValues[i].size();j++){
-                subset = create_subset(data,i,j);
-                subsetEntropy = calculate_entropy(subset,targetCode);
+            for (int j = 0; j < atrValues[i].size(); j++) {
+                subset = create_subset(data, i, j);
+                subsetEntropy = calculate_entropy(subset, targetCode);
                 subsetSize = subset.get_dataTable().length;
-                atrEntropy += (subsetSize/dataSize)*subsetEntropy;
+                atrEntropy += (subsetSize / dataSize) * subsetEntropy;
             }
             //Compute gain from entropies and check to see if it is the highest gain yet
             gain = node.entropy - atrEntropy;
-            if(gain > highestGain){
+            if (gain > highestGain) {
                 highestGain = gain;
                 node.splitAttribute = i;
             }
             atrEntropy = 0;
         }
     }
-    private ID3Node build_tree(ID3Node root){
+    public void classify(){
+        //Classify test file, append classification column to test DataSet
+        outData = classify_input();
+        accuracy = calc_accuracy();
+    }
+    public void init_rules(){
+        this.rules = create_rules(tree);
+    }
+    public void init_tree() {
+        this.tree = new ID3Node(this.trainData);
+    }
+    public ID3Node build_tree(ID3Node root){
         //Creates a decision tree from the given dataset
         int targetCode = this.targetCode;
         DataSet subset;
@@ -241,7 +256,7 @@ public class DecisionTree{
         }
         return rules;
     }
-    private double calc_accuracy(){
+    public double calc_accuracy(){
         //Calculates the accuracy of the Naive Bayes Classifiers Predictions
         DataSet data = this.outData;
         int targetCode = this.targetCode;
@@ -259,8 +274,9 @@ public class DecisionTree{
         acc = (double)correct/(double)totalTuples;
         return acc;
     }
-    public DataSet classify_input(DataSet testData){
+    public DataSet classify_input(){
         int targetCode = this.targetCode;
+        DataSet testData = this.testData;
         Rule[] rules = this.rules;
         //Process and classify all test examples
         int[][] dataTable = testData.get_dataTable();
@@ -353,22 +369,14 @@ public class DecisionTree{
         this.testpath = testpath;
         this.target = target;
         try {
-            DataSet trainData = read_data(trainpath);
-            DataSet testData = read_data(testpath);
+            this.trainData = read_data(trainpath);
+            this.testData = read_data(testpath);
             //Get the targetCode for the attribute we want to classify
             this.targetCode = get_target_code(trainData,target);
             if(this.targetCode == -1){
                 System.out.println("The given target attribute name is not present in the table");
                 exit(1);
             }
-            // Build a tree
-            ID3Node root = new ID3Node(trainData);
-            this.tree = build_tree(root);
-            //Print all rules
-            this.rules = create_rules(tree);
-            //Classify test file, append classification column to test DataSet
-            this.outData = classify_input(testData);
-            this.accuracy = calc_accuracy();
         }
         catch(IOException e){
             System.out.println("Error Reading file");

@@ -7,7 +7,6 @@ public class C45Tree extends DecisionTree{
 
     private double calculate_splitInfo(DataSet data, int atrCode){
         double splitInfo = 0;
-        double entropy = 0;
         int[][] dataTable = data.get_dataTable();
         int size = dataTable.length;
         int count = 0;
@@ -15,7 +14,7 @@ public class C45Tree extends DecisionTree{
         LinkedList[] atrValues = data.get_atrValues();
         for(int j = 0;j<atrValues[atrCode].size();j++) {
             for (int k = 0; k < size; k++) {
-                if(dataTable[atrCode][targetCode] == j){
+                if(dataTable[k][atrCode] == j){
                     count++;
                 }
             }
@@ -23,10 +22,38 @@ public class C45Tree extends DecisionTree{
             if(count != 0) {
                 prob = ((double) count) / ((double) size);
                 count = 0;
-                entropy += -prob * log_base2(prob);
+                splitInfo += -prob * log_base2(prob);
             }
-        }
+    }
         return splitInfo;
+    }
+    public ID3Node build_tree(ID3Node root){
+        //Creates a decision tree from the given dataset
+        int targetCode = this.targetCode;
+        DataSet subset;
+        //Get information Gain
+        root.entropy = calculate_entropy(root.data,targetCode);
+        if(root.entropy == 0){
+            root.children = null;
+            //This is a leaf node, so decide which class this node belongs to
+            root.get_targetVal(targetCode);
+        }
+        else {
+            get_splitting_attribute(root, targetCode);
+            LinkedList<String>[] atrValues = root.data.get_atrValues();
+            int numChildren = atrValues[root.splitAttribute].size();
+            ID3Node[] children = new ID3Node[numChildren];
+            //Create branches off of the root for each value of the splitAttribute
+            for (int i = 0; i < numChildren; i++) {
+                subset = create_subset(root.data, root.splitAttribute, i);
+                children[i] = new ID3Node(subset);
+                children[i].parent = root;
+                children[i].splitValue = i;
+                build_tree(children[i]);
+            }
+            root.children = children;
+        }
+        return root;
     }
 
     public void get_splitting_attribute(ID3Node node,int targetCode){
@@ -58,12 +85,12 @@ public class C45Tree extends DecisionTree{
             //Compute gain ratio from entropies and check to see if it is the highest gain yet
             gain = node.entropy - atrEntropy;
             gainRatio = gain/splitInfo;
+            System.out.println(gainRatio + " " + gain + " " + splitInfo);
             if(gainRatio > highestGainRatio){
                 highestGainRatio = gainRatio;
                 node.splitAttribute = i;
             }
             atrEntropy = 0;
-            System.out.println("HEY THERE");
         }
     }
 }
