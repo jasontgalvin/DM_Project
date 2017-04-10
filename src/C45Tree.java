@@ -2,8 +2,8 @@ import java.util.LinkedList;
 
 public class C45Tree extends DecisionTree{
 
-    //Entropy calculated as gain ratio with gain from gain/splitInfo
-    //Split info is --we have no idea
+    //Gain calculated as gain ratio with gain from gain/splitInfo
+    //Post-Pruning Implemented
 
     private double calculate_splitInfo(DataSet data, int atrCode){
         double splitInfo = 0;
@@ -35,8 +35,6 @@ public class C45Tree extends DecisionTree{
         root.entropy = calculate_entropy(root.data,targetCode);
         if(root.entropy == 0){
             root.children = null;
-            //This is a leaf node, so decide which class this node belongs to
-            root.get_targetVal(targetCode);
         }
         else {
             get_splitting_attribute(root, targetCode);
@@ -53,7 +51,37 @@ public class C45Tree extends DecisionTree{
             }
             root.children = children;
         }
+        //Calculate the majority class and the error probability
+        root.get_targetVal(targetCode);
         return root;
+    }
+
+    public double prune_tree(ID3Node root){
+        //Prune tree by comparing the error probability of a parent to its children
+        //If the children increase the error, they can be pruned
+        double errorSum = 0;
+        if(root != null){
+            if(root.hasChildren()){
+                ID3Node[] children = root.children;
+                for(int i = 0;i<children.length;i++){
+                    int childCount = 0;
+                    if(children[i].hasChildren()){
+                        //Child is not leaf node
+                        errorSum += prune_tree(children[i]);
+                    }
+                    else{
+                        //Child is leaf node
+                        errorSum += children[i].errorProb;
+                    }
+                }
+            }
+        }
+        if(errorSum > root.errorProb){
+            //Prune tree by breaking association between the parent and children
+            root.children = null;
+            System.out.print("Pruning");
+        }
+        return root.errorProb;
     }
 
     public void get_splitting_attribute(ID3Node node,int targetCode){
@@ -85,7 +113,6 @@ public class C45Tree extends DecisionTree{
             //Compute gain ratio from entropies and check to see if it is the highest gain yet
             gain = node.entropy - atrEntropy;
             gainRatio = gain/splitInfo;
-            System.out.println(gainRatio + " " + gain + " " + splitInfo);
             if(gainRatio > highestGainRatio){
                 highestGainRatio = gainRatio;
                 node.splitAttribute = i;

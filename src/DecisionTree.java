@@ -147,7 +147,6 @@ public class DecisionTree {
 
     private void get_splitting_attribute(ID3Node node, int targetCode) {
         //Find attribute with the highest gain and adds it to the given node
-        System.out.println("OH NO\n\n\n");
         DataSet data = node.data;
         LinkedList[] atrValues = data.get_atrValues();
         DataSet subset;
@@ -196,8 +195,6 @@ public class DecisionTree {
         root.entropy = calculate_entropy(root.data,targetCode);
         if(root.entropy == 0){
             root.children = null;
-            //This is a leaf node, so decide which class this node belongs to
-            root.get_targetVal(targetCode);
         }
         else {
             get_splitting_attribute(root, targetCode);
@@ -214,6 +211,8 @@ public class DecisionTree {
             }
             root.children = children;
         }
+        //Calculate the majority class and the error probability
+        root.get_targetVal(targetCode);
         return root;
     }
 

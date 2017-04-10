@@ -10,6 +10,7 @@ public class ID3Node {
     public ID3Node[] children;
     public ID3Node parent;
     public int targetVal;
+    public double errorProb;
 
     public ID3Node(DataSet data){
         this.data = data;
@@ -46,5 +47,18 @@ public class ID3Node {
             }
         }
         this.targetVal = maxcountIndex;
+        //Calculate error probability
+        int errorCount = 0;
+        for(int j = 0;j<counts.length;j++){
+            if(j != maxcountIndex){
+                errorCount += counts[j];
+            }
+        }
+        if(dataTable.length > 0) {
+            this.errorProb = errorCount / dataTable.length;
+        }
+        else{
+            this.errorProb = 0;
+        }
     }
 }
