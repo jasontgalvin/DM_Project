@@ -212,7 +212,7 @@ public class DecisionTree {
             root.children = children;
         }
         //Calculate the majority class and the error probability
-        root.get_targetVal(targetCode);
+        root.get_targetVal(targetCode,0.69);
         return root;
     }
 

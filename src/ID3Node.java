@@ -1,6 +1,8 @@
 import java.util.LinkedList;
 import java.util.Vector;
 
+import static java.lang.Math.sqrt;
+
 
 public class ID3Node {
     public double entropy;
@@ -10,7 +12,7 @@ public class ID3Node {
     public ID3Node[] children;
     public ID3Node parent;
     public int targetVal;
-    public double errorProb;
+    public double upperPVal;
 
     public ID3Node(DataSet data){
         this.data = data;
@@ -18,13 +20,13 @@ public class ID3Node {
     public boolean hasChildren(){
         //Checks if node is a leaf node
         if(children==null){
-            return true;
-        }
-        else{
             return false;
         }
+        else{
+            return true;
+        }
     }
-    public void get_targetVal(int targetCode){
+    public void get_targetVal(int targetCode,double z){
         //Get integer code for index of winning target class
         int[][] dataTable = this.data.get_dataTable();
         LinkedList<String> atrNames = this.data.get_atrNames();
@@ -54,11 +56,13 @@ public class ID3Node {
                 errorCount += counts[j];
             }
         }
+        double errorProb = 0;
         if(dataTable.length > 0) {
-            this.errorProb = errorCount / dataTable.length;
+            errorProb = (double)errorCount/(double)dataTable.length;
+            this.upperPVal = errorProb + z*sqrt(errorProb*(1-errorProb)/dataTable.length);
         }
         else{
-            this.errorProb = 0;
+            this.upperPVal = 0;
         }
     }
 }

@@ -52,7 +52,7 @@ public class C45Tree extends DecisionTree{
             root.children = children;
         }
         //Calculate the majority class and the error probability
-        root.get_targetVal(targetCode);
+        root.get_targetVal(targetCode,0.69);//0.69 is the z value used to calculate the upper pval
         return root;
     }
 
@@ -71,17 +71,21 @@ public class C45Tree extends DecisionTree{
                     }
                     else{
                         //Child is leaf node
-                        errorSum += children[i].errorProb;
+                        errorSum += children[i].upperPVal;
                     }
                 }
             }
         }
-        if(errorSum > root.errorProb){
+
+        int totalRows = root.data.get_dataTable().length;
+        double childErrorProb = errorSum/root.children.length;
+        System.out.println(childErrorProb + " " + root.upperPVal);
+        if(childErrorProb > root.upperPVal && root.parent != null){
             //Prune tree by breaking association between the parent and children
             root.children = null;
-            System.out.print("Pruning");
+            System.out.println("Pruning");
         }
-        return root.errorProb;
+        return root.upperPVal;
     }
 
     public void get_splitting_attribute(ID3Node node,int targetCode){

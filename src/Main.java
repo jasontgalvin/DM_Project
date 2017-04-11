@@ -30,8 +30,9 @@ public class Main {
         dt.init(trainpath,testpath,target);
         dt.init_tree();
         dt.build_tree(dt.tree);
-//        dt.prune_tree(dt.tree);
+        dt.prune_tree(dt.tree);
         dt.init_rules();
+        System.out.println(dt.tree);
         dt.classify();
         dt.print_rules();
         dt.write_toFile();
