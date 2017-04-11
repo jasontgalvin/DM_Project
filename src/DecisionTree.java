@@ -362,8 +362,27 @@ public class DecisionTree {
             System.out.println("Failed to write to file");
         }
     }
-
-    public void init(String trainpath,String testpath, String target){
+    public int get_target_from_user(){
+        //Asks the user to enter a number for the target code
+        int targetCode = -1;
+        String target = "";
+        Scanner scan = new Scanner(System.in);
+        LinkedList<String> atrNames = this.trainData.get_atrNames();
+        while(targetCode == -1) {
+            for(int i = 0;i<atrNames.size();i++){
+                System.out.println(i + ": " + atrNames.get(i));
+            }
+            System.out.print("Enter the target attribute code:");
+            target = scan.next();
+            targetCode = Integer.parseInt(target);
+            if(targetCode > atrNames.size() || targetCode < 0){
+                targetCode = -1;
+            }
+        }
+        this.target = target;
+        return targetCode;
+    }
+    public void init(String trainpath,String testpath){
         this.trainpath = trainpath;
         this.testpath = testpath;
         this.target = target;
@@ -371,11 +390,7 @@ public class DecisionTree {
             this.trainData = read_data(trainpath);
             this.testData = read_data(testpath);
             //Get the targetCode for the attribute we want to classify
-            this.targetCode = get_target_code(trainData,target);
-            if(this.targetCode == -1){
-                System.out.println("The given target attribute name is not present in the table");
-                exit(1);
-            }
+            this.targetCode = get_target_from_user();
         }
         catch(IOException e){
             System.out.println("Error Reading file");

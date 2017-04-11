@@ -79,7 +79,6 @@ public class C45Tree extends DecisionTree{
 
         int totalRows = root.data.get_dataTable().length;
         double childErrorProb = errorSum/root.children.length;
-        System.out.println(childErrorProb + " " + root.upperPVal);
         if(childErrorProb > root.upperPVal && root.parent != null){
             //Prune tree by breaking association between the parent and children
             root.children = null;

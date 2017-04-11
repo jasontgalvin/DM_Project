@@ -1,0 +1,109 @@
+README file for the ID3 and C4.5 Decision Trees
+
+Description
+--------------------------------------------------
+This program takes in training and testing data sets and creates a decision tree
+classifier based around a target attribute specified by the user. The program is
+implemented using ID3 as a base algorithm, with additional functionality available
+through the C45Tree class extension. The program is currently hard coded to use C4.5
+as it is a better algorithm, but ID3 can be enabled in a future update.
+
+Running Instructions
+---------------------------
+Simply navigate to the folder containing the src folder. Then run the commands~
+
+    javac src/*.java
+    java -cp ./src DecisionTree
+
+		- input the data file names (data files are supposed in the same directory)
+		- input the attribute code for the target attribute
+
+
+Assumptions
+---------------------------------------------
+	- There are no missing data values.
+	- Data is pre-processed, tab delimited and partitioned into training/testing partitions.
+	        (See the example train/test data sets -- data1 and data2, data3 and data4, or sec_train and sec_test)
+	- ID3 and C4.5 are not suited for large data sets (sec_train is too large and takes too long)
+	        For larger data sets use C5.0
+
+Improvements in C4.5
+------------------------------------------------
+    - Decision tree turned into a classifier which outputs its results of predicting the test dataset classes.
+    -GainRatio is used to determine splitting attribute instead of Gain alone.
+            -GainRatio is calculated by normalizing the Gain based on the number of values in each attribute.
+            -This prevents picking attributes with many different values with little information gain (ie credit card #)
+    -Tree Pruning is used after the tree is built to reduce overfitting a dataset (a common problem with ID3)
+            - The pruning occurs from the leaves up, where a confidence interval average of the children's errors
+                    are compared to that of the parent.
+            - If the children have a higher upper limit of the confidence interval, they are decreasing the accuracy
+                    of the classifier on unseen data (overfitting), and can the subtree with the parent as the root
+                    can be replaced by the root as a leaf node.
+            - The confidence intervals are calculated using a predefined z value, hardcoded for the moment at a 70% CI,
+                    but could be specified by the user in future versions.
+    * Future Work(Still left to do)
+            - Move pre-processing into the algorithm, with random sampling and partitioning of a data set into user
+                    defined training and testing partitions.
+            - Handle empty values by replacing them with '?' and skipping these marked cells during entropy calculations.
+
+
+
+Code Overview
+---------------------------------------------------------------------
+	General Overview -- Since C4.5 and C5.0 are improvements on ID3, ID3 is used as the base class, where C4.5 and C5.0
+	                    are extensions of ID3. All nodes are still called ID3Nodes to avoid refactoring, but can be
+	                    changed in future versions for correctness.
+
+	- All classes and methods included
+	    - Main
+	        main(), get_user_options()
+		- DecisionTree
+		    init(), get_target_from_user(), read_data(), create_subset(), calculate_entropy(),
+		    get_splitting_attribute(), build_tree(), get_target_code(), create_rules(), write_toFile(),
+		    classify(), init_rules(), init_tree(), log_base2()
+
+        - C45Tree (extends DecisionTree)
+            prune_tree(), get_splitting_attribute(), build_tree(), calculate_splitInfo()
+
+		- ID3Node
+			hasChildren(), get_targetVal()
+			ID3Nodes are the nodes used in the tree, containing the entropy, data subset,
+			split attribute and value, its children and parent nodes as well as the target
+			value (the class of the target attribute a leaf node belongs to)
+		- Rule
+		    print_rule()
+		    Rules are just paths through the tree, leading to the leaf nodes. Rules consist
+		    of an integer code for an attribute a, its attribute value code aVal, the dataset,
+		    the value of the target and a recursive Rule b, which could be another nested rule,
+		    or simply a leaf node, which will be printed as the target attribute and target value.
+
+
+		- DataSet
+		    print_dataTable(), print_data() -- These were used only for debugging
+			setter/getter methods as well
+			A dataset stores the attribute names, the possible values for each of the attributes,
+			and a data table containing the integer codes to map the values in the input data and
+			the attribute value codes. Subsets of the data are represented as Datasets as well.
+
+Program Flow
+-----------------------------------------------------------------------------
+The user options are taken for the training and testing data file path and target attribute. The main class builds
+a C4.5 tree and initializes it by reading the data into DataSet objects. A tree is created by first creating the root
+node and calling build tree with it. Build tree is called recursively, where the entropy for the node is calculated and
+stored. If the entropy is 0, then the current node is a leaf node with the target attribute classes split. If it is
+not a leaf node, we get the splitting attribute and generate child nodes with their datasets as subsets defined by the
+splitting attribute. For each of the new children, we call build_tree recursively. Once a leaf node is reached,
+we return to the parent node and check the next child.
+
+Once we have the tree, we call create_rules, to generate an array of rules, each rule of the form
+(a is valA, then b), where b can be a nested rule, or a target attribute and target value. The rules
+are generated by traversing the tree setting the a and aVal at each node, as well as the b rule.
+As stated above, the b rule is generated recursively with create_rule called on the child nodes. After
+the rules are generated, we recursively print the rules, replacing a, aVal, targetCode and targetVal with
+their corresponding strings found in the atrNames and atrValues lists. The output tree is generated
+to look like a tree by counting the level of the tree we are at, and printing that many indents before the rule.
+
+
+
+
+Note: any further details can be found in the documentation in the code
