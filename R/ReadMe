@@ -1,0 +1,16 @@
+Table of Contents
+-----------------
+	-Sample_outputs:
+		-C50_sample.txt: Sample output of C5.0 algorithm using data1 and data2
+		-C50_real_sample.txt: Sample output of C5.0 algorithm using kddcup 99
+		-cart_example.txt: Sample output of CART algorithm using data1 and data2
+		
+	-Src:
+		-C50.R: R implementation of C5.0 algorithm using data1 and data2.
+		-C50_real_data.R: Implementation of C5.0 algorithm using kddcup 99 data
+		-cart.r: Implementation of CART algorithm in R using data1 and data2
+		-CART_real.R: Implementation of CART algorithm using kddcup 99. DOES NOT WORK.
+		-data1: data1 from assignment
+		-data2: data2 from assignment
+		-Preprocessed_data.txt: Preprocessed kddcup 99 data.
+		
