@@ -14,3 +14,13 @@ Table of Contents
 		-data2: data2 from assignment
 		-Preprocessed_data.txt: Preprocessed kddcup 99 data.
 		
+		
+		
+To run program
+---------------
+
+	Start up R, and type 
+		source("name of R file")
+		
+		
+		
