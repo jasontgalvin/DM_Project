@@ -3,7 +3,6 @@ import java.util.Vector;
 
 import static java.lang.Math.sqrt;
 
-
 public class ID3Node {
     public double entropy;
     public DataSet data;

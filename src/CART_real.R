@@ -1,9 +1,9 @@
 library("rpart")
 library("partykit")
 
-data <- read.table("Preprocessed_data.txt",header=TRUE)
+data <- read.table("pdata",header=TRUE)
 #read in data 
-data <- read.table("Preprocessed_data.txt",header=TRUE,sep="\t")
+data <- read.table("pdata",header=TRUE,sep="\t")
 #split data by even column and odd
 L<-length(data[,1])
 even_data<-data[seq(0,L,+2),]

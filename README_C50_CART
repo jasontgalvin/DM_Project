@@ -19,8 +19,27 @@ Table of Contents
 To run program
 ---------------
 
-	Start up R, and type 
-		source("name of R file")
+	Start up R
+	    to install packages: run....
+
+	            install.packages("partykit")
+	            install.packages("rpart")
+	            install.packages("C50")
+
+	    navigate to the folder where the data files are kept (just outside of the src folder)
+
+	               setwd("path_to_project/DM_Project/")
+
+	           where path_to_project is the path to where DM_Project is saved
+
+		then run....
+
+		    source("src/C50.R")
+
+		 replacing C50.R with any of the following.
 		
-		
-		
+	 C50.R will run the C5.0 algorithm on the PlayTennis Dataset
+	 C50_real_data.R will run C5.0 on the large Security Dataset
+	 cart.r will run the CART algorithm on the PlayTennis Dataset
+	 CART_real.R will run the CART algorithm on the large Security Dataset
+

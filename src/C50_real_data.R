@@ -1,7 +1,7 @@
 #import packages for C50
 library("C50")
 #read in data 
-data <- read.table("Preprocessed_data.txt",header=TRUE,sep="\t")
+data <- read.table("pdata",header=TRUE,sep="\t")
 #split data by even column and odd
 L<-length(data[,1])
 even_data<-data[seq(0,L,+2),]
